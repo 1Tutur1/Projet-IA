@@ -25,12 +25,12 @@ def cluster_hauteur(nb_cluster):
     obj_kmeans = KMeans(n_clusters=nb_cluster, random_state=42)
     obj_kmeans.fit(X)
     indices_cluster = obj_kmeans.predict(X)
-    bdd["cluster"] = indices_cluster
-    return bdd
+    return indices_cluster
 
 
 def visualisation_cluster_hauteur(nb_cluster):
-    bdd = cluster_hauteur(nb_cluster)
+    indices_cluster = cluster_hauteur(nb_cluster)
+    bdd["cluster"] = indices_cluster
     stquentin = mpimg.imread("C:/Users/pierr/PycharmProjects/Projet_IA/stquentin.PNG")
     bdd.plot(kind="scatter", x="longitude", y="latitude", label="arbres",c="cluster",cmap="rainbow", figsize=(10,7),s=10,colorbar=False)
     plt.imshow(stquentin, extent=(3.24, 3.33, 49.825, 49.873))
