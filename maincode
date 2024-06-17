@@ -96,8 +96,6 @@ grid_search = GridSearchCV(estimator=model,
                            param_grid=param_grid,
                            scoring='neg_mean_squared_error',  # Métrique à optimiser (ici MSE)
                            cv=5,  # Nombre de folds pour la validation croisée
-                           verbose=1,  # Affichage des détails
-                           n_jobs=-1  # Utilisation de tous les cœurs du CPU
                           )
 
 # Exécution de la recherche sur la grille avec les données d'entraînement
