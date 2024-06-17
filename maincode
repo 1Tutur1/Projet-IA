@@ -36,3 +36,11 @@ plt.show()
 
 centroids = obj_kmeans.cluster_centers_
 print(centroids)
+
+## Convertir les données non-numériques en numérique ##
+colonnes_a_convertir = ['fk_arb_etat','fk_stadedev']
+encoder = OrdinalEncoder()
+bdd[colonnes_a_convertir] = encoder.fit_transform(bdd[colonnes_a_convertir])
+
+## Fin conversion ##
+
