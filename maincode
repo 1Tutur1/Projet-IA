@@ -19,10 +19,7 @@ plt.show()
 bdd = pd.read_csv("C:/Users/pierr/PycharmProjects/Projet_IA/Data_Arbre.csv",delimiter=";")
 
 def visualisation_cluster_hauteur(nb_cluster):
-    colonnes_a_convertir = ['fk_arb_etat','fk_stadedev']
-    encoder = OrdinalEncoder()
-    bdd[colonnes_a_convertir] = encoder.fit_transform(bdd[colonnes_a_convertir])
-
+    bdd.drop(columns=["clc_quartier","clc_secteur","remarquable","feuillage","villeca","fk_nomtech","clc_nbr_diag","fk_prec_estim","age_estim","fk_revetement","fk_situation","fk_pied","fk_port","fk_stadedev","fk_arb_etat","tronc_diam","haut_tronc"], inplace=True)
     X = bdd[["haut_tot"]]
 
     obj_kmeans = KMeans(n_clusters=nb_cluster, random_state=42)
