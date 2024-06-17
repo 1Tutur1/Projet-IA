@@ -1,0 +1,14 @@
+## Afficher les arbres en fonction de leur hauteur sur la carte ##
+stquentin_img = mpimg.imread('C:/Users/apeta/PycharmProjects/projetIA3A/stquentin.PNG')
+
+# Tracer le scatter plot
+bdd.plot(kind="scatter", x="longitude", y="latitude", alpha=0.4, label="arbres",
+         c="haut_tot", colormap="gist_rainbow", colorbar=True, sharex=False, figsize=(10,7),s=10)
+# Ajouter l'image avec plt.imshow
+plt.imshow(stquentin_img, extent=(3.24, 3.33, 49.825, 49.873), alpha=0.5)
+
+# Afficher la légende et le graphique
+plt.legend()
+plt.show()
+
+## Fin affichage sur la carte
