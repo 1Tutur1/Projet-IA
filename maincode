@@ -20,4 +20,4 @@ print(X)
 obj_kmeans = KMeans(n_clusters=3, random_state=42)
 obj_kmeans.fit(X)
 indices_cluster = obj_kmeans.predict(X)
-print(indices_cluster
+print(indices_cluster)
