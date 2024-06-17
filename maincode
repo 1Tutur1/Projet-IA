@@ -18,7 +18,7 @@ plt.show()
 
 bdd = pd.read_csv("C:/Users/pierr/PycharmProjects/Projet_IA/Data_Arbre.csv",delimiter=";")
 
-def visualisation_cluster_hauteur(nb_cluster):
+def cluster_hauteur(nb_cluster):
     bdd.drop(columns=["clc_quartier","clc_secteur","remarquable","feuillage","villeca","fk_nomtech","clc_nbr_diag","fk_prec_estim","age_estim","fk_revetement","fk_situation","fk_pied","fk_port","fk_stadedev","fk_arb_etat","tronc_diam","haut_tronc"], inplace=True)
     X = bdd[["haut_tot"]]
 
@@ -26,16 +26,18 @@ def visualisation_cluster_hauteur(nb_cluster):
     obj_kmeans.fit(X)
     indices_cluster = obj_kmeans.predict(X)
     bdd["cluster"] = indices_cluster
+    return bdd
 
+
+def visualisation_cluster_hauteur(nb_cluster):
+    bdd = cluster_hauteur(nb_cluster)
     stquentin = mpimg.imread("C:/Users/pierr/PycharmProjects/Projet_IA/stquentin.PNG")
     bdd.plot(kind="scatter", x="longitude", y="latitude", label="arbres",c="cluster",cmap="rainbow", figsize=(10,7),s=10,colorbar=False)
     plt.imshow(stquentin, extent=(3.24, 3.33, 49.825, 49.873))
 
-    plt.legend()
     plt.show()
 
 visualisation_cluster_hauteur(5)
-
 -----------------------------
 
 
