@@ -14,10 +14,25 @@ plt.show()
 ## Fin affichage sur la carte
 
 
-X = bdd[["haut_tot","longitude","latitude"]]
+
+
+bdd = pd.read_csv("C:/Users/pierr/PycharmProjects/Projet_IA/Data_Arbre.csv",delimiter=";")
+
+X = bdd[["haut_tot"]]
 print(X)
 
-obj_kmeans = KMeans(n_clusters=3, random_state=42)
+obj_kmeans = KMeans(n_clusters=10, random_state=42)
 obj_kmeans.fit(X)
 indices_cluster = obj_kmeans.predict(X)
-print(indices_cluster)
+bdd["cluster"] = indices_cluster
+
+stquentin_img = mpimg.imread("C:/Users/pierr/PycharmProjects/Projet_IA/stquentin.PNG")
+bdd.plot(kind="scatter", x="longitude", y="latitude", alpha=0.4, label="arbres",c="cluster",cmap="rainbow", figsize=(10,7),s=10,colorbar=False)
+plt.imshow(stquentin_img, extent=(3.24, 3.33, 49.825, 49.873), alpha=0.8)
+plt.legend()
+plt.show()
+
+
+
+centroids = obj_kmeans.cluster_centers_
+print(centroids)
