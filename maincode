@@ -39,6 +39,28 @@ def visualisation_cluster_hauteur(nb_cluster):
 
 visualisation_cluster_hauteur(5)
 
+-------------------------------------------
+
+import pandas as pd
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, precision_score, recall_score
+
+# Charger le fichier CSV
+bdd = pd.read_csv('C:/Users/apeta/PycharmProjects/projetIA3A/Data_Arbre.csv')
+
+# Se débarrasser des colonnes inutiles
+bdd.drop(columns=["remarquable", "feuillage", "villeca", "fk_nomtech", "clc_nbr_diag",
+                  "fk_prec_estim", "fk_revetement", "fk_situation", "fk_pied", "fk_port",
+                  "fk_arb_etat"], inplace=True)
+
+# Convertir les données non-numériques en numérique, parmi celles dont on va se servir
+colonnes_a_convertir = ['fk_stadedev', 'clc_quartier', 'clc_secteur']
+encoder = OrdinalEncoder()
+bdd[colonnes_a_convertir] = encoder.fit_transform(bdd[colonnes_a_convertir])
+
+# Fin conversion
 
 for i in range(len(bdd)):
     if bdd["age_estim"][i] < 5:
@@ -59,104 +81,41 @@ for i in range(len(bdd)):
         bdd.loc[i, "age_estim"] = 7
     else:
         bdd.loc[i, "age_estim"] = 8
------------------------------
 
-
-
-centroids = obj_kmeans.cluster_centers_
-print(centroids)
-
-## Convertir les données non-numériques en numérique ##
-colonnes_a_convertir = ['fk_arb_etat','fk_stadedev']
-encoder = OrdinalEncoder()
-bdd[colonnes_a_convertir] = encoder.fit_transform(bdd[colonnes_a_convertir])
-
-## Fin conversion ##
-#fonctionnalité 2
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split, GridSearchCV
-import numpy 
-
-# Sélection des caractéristiques et de la cible
-X = bdd[["haut_tot", "longitude", "latitude","tronc_diam"]]
+bdd = bdd.astype({"age_estim": int})
+# Création des bases X et Y qui contiennent toutes les données intéressantes
+X = bdd[["haut_tot", "tronc_diam", "clc_quartier", "clc_secteur", "fk_stadedev"]]
 y = bdd["age_estim"]
 
-# Séparation en ensembles d'entraînement et de test
+# Diviser les données en ensembles d'entraînement et de test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Normalisation des données
+# Normaliser les données
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-# Initialisation et entraînement du modèle Random Forest
-model = RandomForestRegressor(random_state=42)
+model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
+param_grid = {'n_estimators': [50, 100, 200], 'max_features': [2, 3, 4, 5]}
 
-# Prédiction sur l'ensemble de test
-y_pred = model.predict(X_test)
+search = GridSearchCV(model, param_grid, cv=5, scoring='accuracy')
+search.fit(X_train, y_train)
 
-# Calcul des métriques
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
+# Prédire les valeurs de test
+y_pred = search.best_estimator_.predict(X_test)
 
-print(f"Mean Squared Error: {mse}")
+# Tester les métriques
 
-
-# Définition de la grille des hyperparamètres à tester
-param_grid = {
-    'fit_intercept': [True, False],
-'n_jobs': [None, 1, 2, 4],
-    'copy_X': [True, False]
-}
-
-# Initialisation du GridSearchCV
-grid_search = GridSearchCV(estimator=model,
-                           param_grid=param_grid,
-                           scoring='neg_mean_squared_error',  # Métrique à optimiser (ici MSE)
-                           cv=5,  # Nombre de folds pour la validation croisée
-                          )
-
-# Exécution de la recherche sur la grille avec les données d'entraînement
-grid_search.fit(X_train, y_train)
-
-# Affichage des meilleurs paramètres et du meilleur score
-print(f"Meilleurs paramètres : {grid_search.best_params_}")
-print(f"Meilleur score : {grid_search.best_score_}")
-
-# Utilisation du meilleur modèle trouvé
-best_model = grid_search.best_estimator_
-
-# Prédiction avec le meilleur modèle sur l'ensemble de test
-y_pred_best = best_model.predict(X_test)
-
-# Évaluation du meilleur modèle
-mse_best = mean_squared_error(y_test, y_pred_best)
-rmse_best = np.sqrt(mse_best)
-
-print(f"Mean Squared Error (best model): {mse_best}")
-
-for i in range(len(bdd)):
-    if 0 <= bdd["age_estim"][i] <= 5:
-        bdd["age_estim"][i] = 0
-    elif 5 < bdd["age_estim"][i] <= 10:
-        bdd["age_estim"][i] = 1
-    elif 10 < bdd["age_estim"][i] <= 20:
-        bdd["age_estim"][i] = 2
-    elif 20 < bdd["age_estim"][i] <= 30:
-        bdd["age_estim"][i] = 3
-    elif 30 < bdd["age_estim"][i] <= 40:
-        bdd["age_estim"][i] = 4
-    elif 40 < bdd["age_estim"][i] <= 60:
-        bdd["age_estim"][i] = 5
-    elif 60 < bdd["age_estim"][i] <= 80:
-        bdd["age_estim"][i] = 6
-    elif 80 < bdd["age_estim"][i] <= 100:
-        bdd["age_estim"][i] = 7
-    else:
-        bdd["age_estim"][i] = 8
-
+acc = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred, average='weighted')
+recall = recall_score(y_test, y_pred, average='weighted')
+cm = confusion_matrix(y_test, y_pred)
+print(f'Meilleurs paramètres : {search.best_params_}')
+print(f'Accuracy : {acc}')
+print(f'Precision : {precision}')
+print(f'Rappel : {recall}')
+print('Confusion Matrix:')
+print(cm)
 
 
