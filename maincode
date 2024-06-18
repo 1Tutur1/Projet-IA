@@ -107,15 +107,18 @@ y_pred = search.best_estimator_.predict(X_test)
 
 # Tester les métriques
 
-acc = accuracy_score(y_test, y_pred)
+taux_classification = accuracy_score(y_test, y_pred)
 precision = precision_score(y_test, y_pred, average='weighted')
 recall = recall_score(y_test, y_pred, average='weighted')
-cm = confusion_matrix(y_test, y_pred)
+matrice_confusion = confusion_matrix(y_test, y_pred)
+f1 = f1_score(y_test,y_pred,average='weighted')
 print(f'Meilleurs paramètres : {search.best_params_}')
-print(f'Accuracy : {acc}')
-print(f'Precision : {precision}')
+print(f'Taux de classification : {taux_classification}')
+print(f'Précision : {precision}')
 print(f'Rappel : {recall}')
-print('Confusion Matrix:')
-print(cm)
+print(f"f1_score :{f1}")
+print("Matrice de confusion:")
+print(matrice_confusion)
+
 
 
