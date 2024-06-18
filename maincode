@@ -117,5 +117,25 @@ rmse_best = np.sqrt(mse_best)
 
 print(f"Mean Squared Error (best model): {mse_best}")
 
+for i in range(len(bdd)):
+    if 0 <= bdd["age_estim"][i] <= 5:
+        bdd["age_estim"][i] = 0
+    elif 5 < bdd["age_estim"][i] <= 10:
+        bdd["age_estim"][i] = 1
+    elif 10 < bdd["age_estim"][i] <= 20:
+        bdd["age_estim"][i] = 2
+    elif 20 < bdd["age_estim"][i] <= 30:
+        bdd["age_estim"][i] = 3
+    elif 30 < bdd["age_estim"][i] <= 40:
+        bdd["age_estim"][i] = 4
+    elif 40 < bdd["age_estim"][i] <= 60:
+        bdd["age_estim"][i] = 5
+    elif 60 < bdd["age_estim"][i] <= 80:
+        bdd["age_estim"][i] = 6
+    elif 80 < bdd["age_estim"][i] <= 100:
+        bdd["age_estim"][i] = 7
+    else:
+        bdd["age_estim"][i] = 8
+
 
 
