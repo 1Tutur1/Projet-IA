@@ -14,15 +14,20 @@ NB_CLUSTERS_MAX = 10
 
 
 def cluster_hauteur(nb_cluster):
-    bdd.drop(
-        columns=["clc_quartier", "clc_secteur", "remarquable", "feuillage", "villeca", "fk_nomtech", "clc_nbr_diag",
-                 "fk_prec_estim", "age_estim", "fk_revetement", "fk_situation", "fk_pied", "fk_port", "fk_stadedev",
-                 "fk_arb_etat", "tronc_diam", "haut_tronc"], inplace=True)
+    bdd.drop(columns=["clc_quartier","clc_secteur","remarquable","feuillage","villeca","fk_nomtech","clc_nbr_diag","fk_prec_estim","age_estim","fk_revetement","fk_situation","fk_pied","fk_port","fk_stadedev","fk_arb_etat","tronc_diam","haut_tronc"], inplace=True)
     X = bdd[["haut_tot"]]
 
     obj_kmeans = KMeans(n_clusters=nb_cluster, random_state=42)
     obj_kmeans.fit(X)
     indices_cluster = obj_kmeans.predict(X)
+
+    #crée le fichier contenant les centroides nécessaires pour les scripts de la partie 3
+    centroids = obj_kmeans.cluster_centers_
+    fichier_centroide = open(file="centroides.txt", mode='w')
+    for centroide in centroids:
+        fichier_centroide.write(str(centroide[0])+'\n')
+    fichier_centroide.close()
+
     return indices_cluster
 
 
@@ -78,3 +83,18 @@ visualisation_metrique("Calinski-Harabasz Index", calinski_harabasz_scores, NB_C
 visualisation_metrique("Davies-Bouldin Index", davies_bouldin_scores, NB_CLUSTERS_MAX, 1, 3, 3)
 plt.tight_layout()
 plt.show()
+
+
+def apprentisage_non_supervise(fichier_centroide,features):
+    fichier_centroide = open(file=fichier_centroide, mode='r')
+    centroides = fichier_centroide.readlines()
+    liste_centroides = []
+    for centroide in centroides:
+        liste_centroides.append(float(centroide.strip()))
+    fichier_centroide.close()
+    liste_distance = []
+    for centroide in liste_centroides:
+        liste_distance.append(abs(float(features)-centroide))
+    indice_min = liste_distance.index(min(liste_distance))
+    return f"L'arbre appartient au cluster {indice_min+1} dont la haut_tot du centroide vaut {liste_centroides[indice_min]}"
+
