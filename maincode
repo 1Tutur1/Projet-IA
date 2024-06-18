@@ -38,6 +38,27 @@ def visualisation_cluster_hauteur(nb_cluster):
     plt.show()
 
 visualisation_cluster_hauteur(5)
+
+
+for i in range(len(bdd)):
+    if bdd["age_estim"][i] < 5:
+        bdd.loc[i, "age_estim"] = 0
+    elif 5 <= bdd["age_estim"][i] < 10:
+        bdd.loc[i, "age_estim"] = 1
+    elif 10 <= bdd["age_estim"][i] < 20:
+        bdd.loc[i, "age_estim"] = 2
+    elif 20 <= bdd["age_estim"][i] < 30:
+        bdd.loc[i, "age_estim"] = 3
+    elif 30 <= bdd["age_estim"][i] < 40:
+        bdd.loc[i, "age_estim"] = 4
+    elif 40 <= bdd["age_estim"][i] < 60:
+        bdd.loc[i, "age_estim"] = 5
+    elif 60 <= bdd["age_estim"][i] < 80:
+        bdd.loc[i, "age_estim"] = 6
+    elif 80 <= bdd["age_estim"][i] < 100:
+        bdd.loc[i, "age_estim"] = 7
+    else:
+        bdd.loc[i, "age_estim"] = 8
 -----------------------------
 
 
