@@ -1,102 +1,97 @@
+--------Stockage de Arthur-------
+
 import pandas as pd
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import OrdinalEncoder
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
-import sys
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, precision_score, recall_score
+import time
+import pickle
 
 # Charger le fichier CSV
 bdd = pd.read_csv('C:/Users/apeta/PycharmProjects/projetIA3A/Data_Arbre.csv')
 
-# on fixe le nombre de clusters maximum, si l'on change sa valeur cela changera le graphique des métriques
-NB_CLUSTERS_MAX = 10
+# Se débarrasser des colonnes inutiles
+bdd.drop(columns=["remarquable", "feuillage", "villeca", "fk_nomtech", "clc_nbr_diag",
+                  "fk_prec_estim", "fk_revetement", "fk_situation", "fk_pied", "fk_port",
+                  "fk_arb_etat"], inplace=True)
 
+# Convertir les données non-numériques en numérique, parmi celles dont on va se servir
+colonnes_a_convertir = ['fk_stadedev', 'clc_quartier', 'clc_secteur']
+encoder = OrdinalEncoder()
+bdd[colonnes_a_convertir] = encoder.fit_transform(bdd[colonnes_a_convertir])
+f2_encoder = open(file="f2_encoder.pkl", mode="wb")
+pickle.dump(bdd[colonnes_a_convertir], f2_encoder)
+# Fin conversion
+debut = time.time()
 
-def cluster_hauteur(nb_cluster):
-    bdd.drop(columns=["clc_quartier","clc_secteur","remarquable","feuillage","villeca","fk_nomtech","clc_nbr_diag","fk_prec_estim","age_estim","fk_revetement","fk_situation","fk_pied","fk_port","fk_stadedev","fk_arb_etat","tronc_diam","haut_tronc"], inplace=True)
-    X = bdd[["haut_tot"]]
+# Bouclage afin de ranger les âges par classes
+for i in range(len(bdd)):
+    if bdd["age_estim"][i] < 5:
+        bdd.loc[i, "age_estim"] = 0
+    elif 5 <= bdd["age_estim"][i] < 10:
+        bdd.loc[i, "age_estim"] = 1
+    elif 10 <= bdd["age_estim"][i] < 20:
+        bdd.loc[i, "age_estim"] = 2
+    elif 20 <= bdd["age_estim"][i] < 30:
+        bdd.loc[i, "age_estim"] = 3
+    elif 30 <= bdd["age_estim"][i] < 40:
+        bdd.loc[i, "age_estim"] = 4
+    elif 40 <= bdd["age_estim"][i] < 60:
+        bdd.loc[i, "age_estim"] = 5
+    elif 60 <= bdd["age_estim"][i] < 80:
+        bdd.loc[i, "age_estim"] = 6
+    elif 80 <= bdd["age_estim"][i] < 100:
+        bdd.loc[i, "age_estim"] = 7
+    else:
+        bdd.loc[i, "age_estim"] = 8
 
-    obj_kmeans = KMeans(n_clusters=nb_cluster, random_state=42)
-    obj_kmeans.fit(X)
-    indices_cluster = obj_kmeans.predict(X)
+bdd = bdd.astype({"age_estim": int})
+# Création des bases X et Y qui contiennent les données intéressantes
+X = bdd[["haut_tot", "tronc_diam", "clc_quartier", "clc_secteur", "fk_stadedev"]]
+y = bdd["age_estim"]
 
-    #crée le fichier contenant les centroides nécessaires pour les scripts de la partie 3
-    centroids = obj_kmeans.cluster_centers_
-    fichier_centroide = open(file="centroides.txt", mode='w')
-    for centroide in centroids:
-        fichier_centroide.write(str(centroide[0])+'\n')
-    fichier_centroide.close()
+# Diviser les données en bases d'apprentissage et de test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    return indices_cluster
+# Normaliser les données
+scaler = StandardScaler()
+f2_scaler = open(file="f2_scaler.pkl", mode="wb")
+pickle.dump(scaler, f2_scaler)
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
+# Création et entraînement du modèle
+model = RandomForestClassifier(random_state=42)
+fitted_model = model.fit(X_train, y_train)
+fichier_modele = open(file="model.pkl", mode="wb")
+pickle.dump(fitted_model, fichier_modele)
+param_grid = {'n_estimators': [50, 100, 200], 'max_features': [2, 3, 4, 5]}
 
-def calcul_silhouette(train_set, obj_labels):
-    return silhouette_score(train_set, obj_labels)
+search = GridSearchCV(model, param_grid, cv=5, scoring='accuracy')
+search.fit(X_train, y_train)
 
+# Prédire les valeurs de test
+y_pred = search.best_estimator_.predict(X_test)
 
-def calcul_calinski_harabasz(train_set, obj_labels):
-    return calinski_harabasz_score(train_set, obj_labels)
-
-
-def calcul_davies_bouldin(train_set, obj_labels):
-    return davies_bouldin_score(train_set, obj_labels)
-
-
-# Initialiser des listes pour stocker les valeurs des indices
-silhouette_scores = []
-calinski_harabasz_scores = []
-davies_bouldin_scores = []
-
-# Initialiser la base d'apprentissage
-X = bdd[["haut_tot", "longitude", "latitude"]]
-
-# Boucler sur le nombre de clusters afin d'afficher les métriques selon ce nombre
-for k in range(2, NB_CLUSTERS_MAX + 1):
-    obj_kmeans = KMeans(n_clusters=k, random_state=42)
-    obj_kmeans.fit(X)
-    labels = obj_kmeans.labels_
-
-    silhouette_scores.append(calcul_silhouette(X, labels))
-    calinski_harabasz_scores.append(calcul_calinski_harabasz(X, labels))
-    davies_bouldin_scores.append(calcul_davies_bouldin(X, labels))
-
-print(silhouette_scores)
-print(calinski_harabasz_scores)
-print(davies_bouldin_scores)
-
-
-# Afficher les valeurs sur un graphique
-plt.figure(figsize=(12, 6))
-
-
-def visualisation_metrique(nom_metrique, liste_scores_metriques, nb_clusters_max, i, j, k):
-    plt.subplot(i, j, k)
-    plt.plot(range(2, nb_clusters_max + 1), liste_scores_metriques, marker='o')
-    plt.xlabel('Nombre de clusters')
-    plt.ylabel(f'{nom_metrique} value')
-    plt.title(nom_metrique)
-
-
-visualisation_metrique("Silhouette Coefficient", silhouette_scores, NB_CLUSTERS_MAX, 1, 3, 1)
-visualisation_metrique("Calinski-Harabasz Index", calinski_harabasz_scores, NB_CLUSTERS_MAX, 1, 3, 2)
-visualisation_metrique("Davies-Bouldin Index", davies_bouldin_scores, NB_CLUSTERS_MAX, 1, 3, 3)
-plt.tight_layout()
-plt.show()
-
-
-def apprentisage_non_supervise(fichier_centroide,features):
-    fichier_centroide = open(file=fichier_centroide, mode='r')
-    centroides = fichier_centroide.readlines()
-    liste_centroides = []
-    for centroide in centroides:
-        liste_centroides.append(float(centroide.strip()))
-    fichier_centroide.close()
-    liste_distance = []
-    for centroide in liste_centroides:
-        liste_distance.append(abs(float(features)-centroide))
-    indice_min = liste_distance.index(min(liste_distance))
-    return f"L'arbre appartient au cluster {indice_min+1} dont la haut_tot du centroide vaut {liste_centroides[indice_min]}"
+# Tester les métriques
+# Note : l'average à weighted n'est pas utile en classification binaire.
+taux_classification = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred, average='weighted')
+recall = recall_score(y_test, y_pred, average='weighted')
+matrice_confusion = confusion_matrix(y_test, y_pred)
+f1 = f1_score(y_test, y_pred, average='weighted')
+fin = time.time()
+print(f'Meilleurs paramètres : {search.best_params_}')
+print(f'Taux de classification : {taux_classification}')
+print(f'Précision : {precision}')
+print(f'Rappel : {recall}')
+print(f"f1_score :{f1}")
+print("Matrice de confusion:")
+print(matrice_confusion)
+print(f'Temps de calcul : {fin - debut}')
 
 
 --------Stockage de pa----
