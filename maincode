@@ -103,12 +103,12 @@ def apprentisage_non_supervise(fichier_centroide,features):
 
 def cluster_taille(nb_cluster):
 
-    bdd.drop(columns=["clc_quartier","clc_secteur","feuillage","villeca","fk_nomtech","clc_nbr_diag","fk_prec_estim","fk_revetement","fk_pied","fk_port","fk_stadedev","fk_arb_etat"], inplace=True)
+    bdd.drop(columns=["clc_quartier","clc_secteur","feuillage","villeca","fk_nomtech","clc_nbr_diag","fk_prec_estim","fk_revetement","fk_pied","fk_port","fk_stadedev","fk_arb_etat","remarquable"], inplace=True)
 
-    colonnes_a_convertir = ['remarquable', 'fk_situation']
+    colonnes_a_convertir = ['fk_situation']
     encoder = OrdinalEncoder()
     bdd[colonnes_a_convertir] = encoder.fit_transform(bdd[colonnes_a_convertir])
-    X = bdd[["haut_tot", "haut_tronc","tronc_diam", "fk_situation","age_estim", "remarquable"]]
+    X = bdd[["haut_tot", "haut_tronc","tronc_diam", "fk_situation","age_estim"]]
 
     obj_kmeans = KMeans(n_clusters=nb_cluster, random_state=42)
     obj_kmeans.fit(X)
@@ -118,7 +118,7 @@ def cluster_taille(nb_cluster):
     centroids = obj_kmeans.cluster_centers_
     fichier_centroide = open(file="centroides.csv", mode='w',newline='')
     ecriture = csv.writer(fichier_centroide, delimiter=';')
-    ecriture.writerow(["haut_tot", "haut_tronc", "tronc_diam", "fk_situation", "age_estim", "remarquable"])
+    ecriture.writerow(["haut_tot", "haut_tronc", "tronc_diam", "fk_situation", "age_estim"])
     for centroide in centroids:
         ecriture.writerow(centroide)
     fichier_centroide.close()
@@ -136,19 +136,20 @@ def visualisation_cluster_taille(nb_cluster):
 
 visualisation_cluster_taille(3)
 
+import sys
+import math
+import pandas as pd
+
 def apprentisage_non_supervise(fichier_centroide,features):
     centroides = pd.read_csv(fichier_centroide,delimiter = ";")
-    print(centroides)
     liste_distance = []
+    liste_features = features.split(",")
     for i in range(0,len(centroides)):
-        distance = math.sqrt((centroides["haut_tot"][i]-features[0])**2
-                             +(centroides["haut_tronc"][i]-features[1])**2
-                             +(centroides["tronc_diam"][i]-features[2]) ** 2
-                             +(centroides["fk_situation"][i]-features[3]) ** 2
-                             +(centroides["age_estim"][i]-features[4]) ** 2
-                             +(centroides["remarquable"][i]-features[5]) ** 2)
+        distance = math.sqrt((centroides["haut_tot"][i]-float(liste_features[0]))**2
+                             +(centroides["haut_tronc"][i]-float(liste_features[1]))**2
+                             +(centroides["tronc_diam"][i]-float(liste_features[2])) ** 2
+                             +(centroides["fk_situation"][i]-float(liste_features[3])) ** 2
+                             +(centroides["age_estim"][i]-float(liste_features[4])) ** 2)
         liste_distance.append(distance)
-    print(liste_distance)
     indice_min = liste_distance.index(min(liste_distance))
-    print(f"L'arbre appartient au cluster {indice_min+1}")
-    return f"L'arbre appartient au cluster {indice_min+1}"
+    return f"L'arbre appartient au cluster {indice_min}"
