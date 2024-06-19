@@ -135,6 +135,77 @@ print("Matrice de confusion:")
 print(matrice_confusion)
 print(f'Temps de calcul : {fin - debut}')
 
+## Fonctionnalité 2bis ##
+
+import pandas as pd
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import f1_score, confusion_matrix, accuracy_score, precision_score, recall_score
+import time
+import pickle
+
+# Charger le fichier CSV
+bdd = pd.read_csv('C:/Users/apeta/PycharmProjects/projetIA3A/Data_Arbre.csv', delimiter=';')
+
+# Se débarrasser des colonnes inutiles
+bdd.drop(columns=["remarquable", "villeca", "clc_nbr_diag",
+                  "fk_prec_estim", "fk_port", "clc_quartier", "clc_secteur"
+                  ], inplace=True)
+
+# Convertir les données non-numériques en numérique, parmi celles dont on va se servir
+colonnes_a_convertir = ['fk_arb_etat', 'feuillage', 'fk_stadedev', 'fk_pied', 'fk_situation', 'fk_revetement',
+                        'fk_nomtech']
+encoder = OrdinalEncoder()
+bdd[colonnes_a_convertir] = encoder.fit_transform(bdd[colonnes_a_convertir])
+f3_encoder = open(file="f3_encoder.pkl", mode="wb")
+pickle.dump(encoder, f3_encoder)
+
+# Fin conversion
+bdd = bdd.astype({"fk_arb_etat": int})
+X = bdd[["haut_tot", "haut_tronc", "tronc_diam", "fk_stadedev", "fk_pied", "fk_situation", "fk_revetement", "age_estim",
+         "fk_nomtech", "feuillage"]]
+y = bdd["fk_arb_etat"]
+
+# Diviser les données en bases d'apprentissage et de test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Normaliser les données
+scaler = StandardScaler()
+f3_scaler = open(file="f3_scaler.pkl", mode="wb")
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+pickle.dump(scaler, f3_scaler)
+
+debut = time.time()
+
+model = DecisionTreeClassifier(random_state=42)
+fitted_model = model.fit(X_train, y_train)
+fichier_modele = open(file="modelf2bis.pkl", mode="wb")
+pickle.dump(fitted_model, fichier_modele)
+param_grid = {'max_features': [2, 3, 4, 5, 6, 7, 8, 9, 10]}
+search = GridSearchCV(model, param_grid, cv=5, scoring='accuracy')
+search.fit(X_train, y_train)
+y_pred = search.best_estimator_.predict(X_test)
+print(y_pred)
+# Tester les métriques
+taux_classification = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred, average='micro', zero_division=0)
+recall = recall_score(y_test, y_pred, average='micro')
+matrice_confusion = confusion_matrix(y_test, y_pred)
+f1 = f1_score(y_test, y_pred, average='micro')
+fin = time.time()
+print(f'Meilleurs paramètres : {search.best_params_}')
+print(f'Taux de classification : {taux_classification}')
+print(f'Précision : {precision}')
+print(f'Rappel : {recall}')
+print(f"f1_score :{f1}")
+print("Matrice de confusion:")
+print(matrice_confusion)
+print(f'Temps de calcul : {fin - debut}')
+
 
 --------Stockage de pa----
 
