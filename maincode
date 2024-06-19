@@ -1,4 +1,31 @@
 --------Stockage de Arthur-------
+import sys
+import math
+import pandas as pd
+import pickle
+from sklearn.preprocessing import OrdinalEncoder
+
+
+def apprentissage_supervise(fichier_modele, fichier_scaler, fichier_encoder, features_csv):
+    fichier_modele = open(fichier_modele, mode="rb")
+    model = pickle.load(fichier_modele)
+    fichier_scaler = open(fichier_scaler, mode="rb")
+    scaler = pickle.load(fichier_scaler)
+    fichier_encoder = open(fichier_encoder, mode="rb")
+    encoder = pickle.load(fichier_encoder)
+    features = pd.read_csv(features_csv, delimiter=';')
+    colonnes_a_convertir = ['fk_stadedev', 'clc_quartier', 'clc_secteur']
+    features[colonnes_a_convertir] = encoder.transform(features[colonnes_a_convertir])
+    X = features[["haut_tot", "tronc_diam", "clc_quartier", "clc_secteur", "fk_stadedev"]]
+    X_fitted = scaler.transform(X)
+    predictions = model.predict(X_fitted)
+    print(X)
+    print(predictions)
+
+
+apprentissage_supervise("model.pkl", "f2_scaler.pkl", "f2_encoder.pkl", "test_script2.csv")
+
+## fonctionnalité 2 ##
 
 import pandas as pd
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
@@ -23,7 +50,7 @@ colonnes_a_convertir = ['fk_stadedev', 'clc_quartier', 'clc_secteur']
 encoder = OrdinalEncoder()
 bdd[colonnes_a_convertir] = encoder.fit_transform(bdd[colonnes_a_convertir])
 f2_encoder = open(file="f2_encoder.pkl", mode="wb")
-pickle.dump(bdd[colonnes_a_convertir], f2_encoder)
+pickle.dump(encoder, f2_encoder)
 # Fin conversion
 debut = time.time()
 
@@ -59,6 +86,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Normaliser les données
 scaler = StandardScaler()
 f2_scaler = open(file="f2_scaler.pkl", mode="wb")
+scaler.fit(X)
 pickle.dump(scaler, f2_scaler)
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
