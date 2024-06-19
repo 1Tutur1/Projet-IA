@@ -101,6 +101,16 @@ def apprentisage_non_supervise(fichier_centroide,features):
 
 --------Stockage de pa----
 
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+from sklearn.cluster import KMeans
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+import csv
+
+bdd = pd.read_csv("Data_Arbre.csv",delimiter=";")
+
 def cluster_taille(nb_cluster):
 
     bdd.drop(columns=["clc_quartier","clc_secteur","feuillage","villeca","fk_nomtech","clc_nbr_diag","fk_prec_estim","fk_revetement","fk_pied","fk_port","fk_stadedev","fk_arb_etat","remarquable"], inplace=True)
@@ -116,7 +126,7 @@ def cluster_taille(nb_cluster):
 
     #crée le fichier contenant les centroides nécessaires pour les scripts de la partie 3
     centroids = obj_kmeans.cluster_centers_
-    fichier_centroide = open(file="centroides.csv", mode='w',newline='')
+    fichier_centroide = open(file="centroides"+str(nb_cluster)+".csv", mode='w',newline='')
     ecriture = csv.writer(fichier_centroide, delimiter=';')
     ecriture.writerow(["haut_tot", "haut_tronc", "tronc_diam", "fk_situation", "age_estim"])
     for centroide in centroids:
