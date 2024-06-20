@@ -216,8 +216,9 @@ from sklearn.cluster import KMeans
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import csv
+import pickle
 
-bdd = pd.read_csv("Data_Arbre.csv",delimiter=";")
+bdd = pd.read_csv("../Data_Arbre.csv", delimiter=";")
 
 def cluster_taille(nb_cluster):
 
@@ -226,6 +227,10 @@ def cluster_taille(nb_cluster):
     colonnes_a_convertir = ['fk_situation']
     encoder = OrdinalEncoder()
     bdd[colonnes_a_convertir] = encoder.fit_transform(bdd[colonnes_a_convertir])
+
+    f1_encoder = open(file="../Fonctionnalite_4/script_fonction_1/encoder_1.pkl", mode="wb")
+    pickle.dump(encoder, f1_encoder)
+
     X = bdd[["haut_tot", "haut_tronc","tronc_diam", "fk_situation","age_estim"]]
 
     obj_kmeans = KMeans(n_clusters=nb_cluster, random_state=42)
@@ -234,13 +239,35 @@ def cluster_taille(nb_cluster):
 
     #crée le fichier contenant les centroides nécessaires pour les scripts de la partie 3
     centroids = obj_kmeans.cluster_centers_
-    fichier_centroide = open(file="centroides"+str(nb_cluster)+".csv", mode='w',newline='')
+    fichier_centroide = open(file="../Fonctionnalite_4/script_fonction_1/fichiers_centroides/centroides_KMeans_"+str(nb_cluster)+".csv", mode='w',newline='')
     ecriture = csv.writer(fichier_centroide, delimiter=';')
     ecriture.writerow(["haut_tot", "haut_tronc", "tronc_diam", "fk_situation", "age_estim"])
     for centroide in centroids:
         ecriture.writerow(centroide)
     fichier_centroide.close()
     return indices_cluster
+
+def visualisation_cluster_taille(nb_cluster):
+    indices_cluster = cluster_taille(nb_cluster)
+    bdd["cluster"] = indices_cluster
+    stquentin = mpimg.imread("stquentin.PNG")
+    bdd.plot(kind="scatter", x="longitude", y="latitude", figsize=(10, 7), s=10, colorbar=False)
+
+    colors = {0: 'darkgreen', 1: 'lime', 2: 'yellow', 3: 'orange', 4: 'red', 5: 'purple', 6: 'indigo', 7: 'royalblue',8: 'lightskyblue'}
+
+    for cluster, color in colors.items():
+        cluster_a_placer = bdd[bdd["cluster"] == cluster]
+        if len(cluster_a_placer) != 0:
+            plt.scatter(cluster_a_placer["longitude"], cluster_a_placer["latitude"], label="Cluster : " + str(cluster+1),
+                        color=color, s=5)
+
+    plt.imshow(stquentin, extent=(3.24, 3.33, 49.825, 49.873))
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    plt.legend()
+    plt.show()
+
+
 
 def visualisation_cluster_taille(nb_cluster):
     indices_cluster = cluster_taille(nb_cluster)
@@ -253,6 +280,65 @@ def visualisation_cluster_taille(nb_cluster):
     plt.show()
 
 visualisation_cluster_taille(3)
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+from sklearn.cluster import Birch
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+import csv
+import pickle
+
+bdd = pd.read_csv("../Data_Arbre.csv", delimiter=";")
+
+def birch(treshold):
+
+    bdd.drop(columns=["clc_quartier","clc_secteur","feuillage","villeca","fk_nomtech","clc_nbr_diag","fk_prec_estim","fk_revetement","fk_pied","fk_port","fk_stadedev","fk_arb_etat","remarquable"], inplace=True)
+
+    colonnes_a_convertir = ['fk_situation']
+    encoder = OrdinalEncoder()
+    bdd[colonnes_a_convertir] = encoder.fit_transform(bdd[colonnes_a_convertir])
+
+    f1_encoder = open(file="../Fonctionnalite_4/script_fonction_1/encoder_1.pkl", mode="wb")
+    pickle.dump(encoder, f1_encoder)
+
+    X = bdd[["haut_tot", "haut_tronc","tronc_diam", "fk_situation","age_estim"]]
+
+    scaler = StandardScaler()
+    f1_scaler = open(file="../Fonctionnalite_4/script_fonction_1/scaler_1.pkl", mode="wb")
+    pickle.dump(scaler, f1_scaler)
+    scaler.fit(X)
+
+    model_birch = Birch(threshold = treshold)
+    model_birch.fit(X)
+    fichier_model= open(file="../Fonctionnalite_4/script_fonction_1/models/model_1_Birch.pkl", mode="wb")
+    pickle.dump(model_birch, fichier_model)
+    bdd["cluster"] = model_birch.labels_
+
+
+
+    stquentin = mpimg.imread("stquentin.PNG")
+    bdd.plot(kind="scatter", x="longitude", y="latitude", figsize=(10,7),s=10,colorbar=False)
+    colors = {0: 'darkgreen', 1: 'lime', 2: 'yellow', 3: 'orange', 4: 'red', 5:'purple', 6:'indigo', 7:'royablue', 8:'lightskyblue'}
+
+    for cluster, color in colors.items():
+        cluster_a_placer = bdd[bdd["cluster"] == cluster]
+        if len(cluster_a_placer)!=0:
+            plt.scatter(cluster_a_placer["longitude"], cluster_a_placer["latitude"], label="Cluster : " +str(cluster+1), color=color,s=5)
+
+    plt.imshow(stquentin, extent=(3.24, 3.33, 49.825, 49.873))
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    plt.legend()
+    plt.show()
+
+birch(0.4)
+
+
+
+
+
 
 import sys
 import math
