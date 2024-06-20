@@ -314,9 +314,7 @@ def birch(treshold):
     model_birch.fit(X)
     fichier_model= open(file="../Fonctionnalite_4/script_fonction_1/models/model_1_Birch.pkl", mode="wb")
     pickle.dump(model_birch, fichier_model)
-    bdd["cluster"] = model_birch.labels_
-
-
+    bdd["cluster"] = model_birch.predict(X)
 
     stquentin = mpimg.imread("stquentin.PNG")
     bdd.plot(kind="scatter", x="longitude", y="latitude", figsize=(10,7),s=10,colorbar=False)
