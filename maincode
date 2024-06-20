@@ -235,6 +235,12 @@ def cluster_taille(nb_cluster):
 
     obj_kmeans = KMeans(n_clusters=nb_cluster, random_state=42)
     obj_kmeans.fit(X)
+
+    scaler = StandardScaler()
+    f1_scaler = open(file="../Fonctionnalite_4/script_fonction_1/scaler_1.pkl", mode="wb")
+    pickle.dump(scaler, f1_scaler)
+    scaler.fit(X)
+
     indices_cluster = obj_kmeans.predict(X)
 
     #crée le fichier contenant les centroides nécessaires pour les scripts de la partie 3
