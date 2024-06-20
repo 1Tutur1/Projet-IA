@@ -335,6 +335,53 @@ def birch(treshold):
 
 birch(0.4)
 
+import sys
+import math
+import pandas as pd
+import pickle
+
+ !! SCRIPT 1 !!
+      |
+     \ /
+      
+def apprentisage_non_supervise(features_csv,nb_cluster,methode):
+    fichier_encoder = open("Fonctionnalite_4/script_fonction_1/encoder_1.pkl", mode="rb")
+    encoder = pickle.load(fichier_encoder)
+
+    features = pd.read_csv(features_csv, delimiter=';')
+    colonnes_a_convertir = ['fk_situation']
+    features[colonnes_a_convertir] = encoder.transform(features[colonnes_a_convertir])
+
+    if methode == "KMeans":
+        fichier_centroide = pd.read_csv("Fonctionnalite_4/script_fonction_1/fichiers_centroides/centroides_KMeans_"+str(nb_cluster)+".csv", delimiter=";")
+        liste_distance = []
+        for i in range(0, len(fichier_centroide)):
+            distance = math.sqrt((fichier_centroide["haut_tot"][i] - features["haut_tot"]) ** 2
+                                 + (fichier_centroide["haut_tronc"][i] - features["haut_tronc"]) ** 2
+                                 + (fichier_centroide["tronc_diam"][i] - features["tronc_diam"]) ** 2
+                                 + (fichier_centroide["fk_situation"][i] - features["fk_situation"]) ** 2
+                                 + (fichier_centroide["age_estim"][i] - features["age_estim"]) ** 2)
+            liste_distance.append(distance)
+        indice_min = liste_distance.index(min(liste_distance))
+        return f"L'arbre appartient au cluster {indice_min}"
+
+    elif methode == "Birch":
+        fichier_modele =  open("Fonctionnalite_4/script_fonction_1/models/model_1_Birch.pkl", mode="rb")
+        modele = pickle.load(fichier_modele)
+        prediction = modele.predict(features)
+        return f"L'arbre appartient au cluster {int(prediction)}"
+    else :
+        return "Méthode spécifiée incorrecte"
+
+
+commande = apprentisage_non_supervise(sys.argv[1],sys.argv[2],sys.argv[3])
+print(commande)
+
+#Pour KMeans et 3 clusters : C:\Users\pierr\AppData\Local\Programs\Python\Python39\python.exe Fonctionnalite_4\script_fonction_1\script_main_1.py Test_script_1.csv 3 KMeans
+
+#Pour Birch : C:\Users\pierr\AppData\Local\Programs\Python\Python39\python.exe Fonctionnalite_4\script_fonction_1\script_main_1.py Test_script_1.csv False Birch
+
+
 
 
 
